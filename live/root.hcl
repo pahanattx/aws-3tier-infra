@@ -3,8 +3,7 @@
   aws_profile = "urban-devops"
   project     = "aws-3tier-infra"
   environment = "prod"
-
-      bucket = get_env("TF_STATE_BUCKET")
+  state_bucket = get_env("TF_STATE_BUCKET")
 }
 
 remote_state {
@@ -44,3 +43,4 @@ provider "aws" {
 }
 EOF
 }
+

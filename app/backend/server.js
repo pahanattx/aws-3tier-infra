@@ -472,10 +472,14 @@ app.get(
     );
   }
 );
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    app_version: APP_VERSION
+  });
+});
 
-
-app.get(
-  "/api/health",
+app.get("/api/health",
   async (
     req,
     res

@@ -51,3 +51,6 @@ Thumbs.db
 *.log
 npm-debug.log*
 dev-preview/
+
+# Terraform plan text outputs
+*-plan.txt
