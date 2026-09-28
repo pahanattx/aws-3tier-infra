@@ -1,0 +1,16 @@
+{
+  "metrics": [
+    [
+      "AWS/RDS",
+      "CPUUtilization",
+      "DBInstanceIdentifier",
+      "three-tier-prod-mysql"
+    ]
+  ],
+  "view": "timeSeries",
+  "region": "us-east-1",
+  "stat": "Average",
+  "period": 60,
+  "title": "RDS CPU Test",
+  "start": "-PT3H"
+}

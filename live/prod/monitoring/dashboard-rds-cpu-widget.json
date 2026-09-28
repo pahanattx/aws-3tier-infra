@@ -1,0 +1,21 @@
+{
+    "metrics":  [
+                    [
+                        "AWS/RDS",
+                        "CPUUtilization",
+                        "DBInstanceIdentifier",
+                        "three-tier-prod-mysql"
+                    ]
+                ],
+    "period":  60,
+    "region":  "us-east-1",
+    "stat":  "Average",
+    "title":  "RDS CPU Utilization",
+    "view":  "timeSeries",
+    "yAxis":  {
+                  "left":  {
+                               "max":  100,
+                               "min":  0
+                           }
+              }
+}

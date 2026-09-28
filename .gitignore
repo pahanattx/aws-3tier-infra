@@ -1,0 +1,53 @@
+# Terraform
+.terraform/
+**/.terraform/
+.terragrunt-cache/
+**/.terragrunt-cache/
+
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+
+# Terraform variable files may contain secrets
+*.tfvars
+*.tfvars.json
+
+# Node
+node_modules/
+**/node_modules/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Backups / temporary files
+*.bak
+*.backup
+*.tmp
+*.temp
+
+*before-auth*
+*before-final*
+*before-ui*
+*syntax-fix*
+*activity-fix*
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+dev-preview/

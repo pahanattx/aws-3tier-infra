@@ -1,0 +1,377 @@
+#!/bin/bash
+set -eux
+
+dnf install -y nginx
+
+cat > /usr/share/nginx/html/index.html <<'HTML'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TeamOps</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      color: #1f2937;
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 20px 30px;
+    }
+
+    header h1 {
+      margin: 0;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      color: #cbd5e1;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .status {
+      padding: 12px 16px;
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    .card strong {
+      font-size: 28px;
+    }
+
+    .panel {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+
+    input,
+    textarea,
+    select,
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 12px;
+    }
+
+    textarea {
+      min-height: 80px;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background: #111827;
+      color: white;
+    }
+
+    button.delete {
+      background: #b91c1c;
+    }
+
+    button.done {
+      background: #047857;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f9fafb;
+    }
+
+    .actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .actions button {
+      width: auto;
+      margin: 0;
+      padding: 7px 10px;
+    }
+
+    @media (max-width: 700px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      table {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>TeamOps</h1>
+  <p>Task & Incident Management Platform</p>
+</header>
+
+<main>
+
+  <div class="status" id="systemStatus">
+    Checking application and database status...
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Total Tasks</h3>
+      <strong id="totalTasks">0</strong>
+    </div>
+
+    <div class="card">
+      <h3>Open Tasks</h3>
+      <strong id="openTasks">0</strong>
+    </div>
+
+    <div class="card">
+      <h3>Completed Tasks</h3>
+      <strong id="doneTasks">0</strong>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Create Task</h2>
+
+    <form id="taskForm">
+      <label>Title</label>
+      <input id="title" required>
+
+      <label>Description</label>
+      <textarea id="description"></textarea>
+
+      <label>Priority</label>
+      <select id="priority">
+        <option value="low">Low</option>
+        <option value="medium" selected>Medium</option>
+        <option value="high">High</option>
+        <option value="critical">Critical</option>
+      </select>
+
+      <button type="submit">Create Task</button>
+    </form>
+  </div>
+
+  <div class="panel">
+    <h2>Tasks</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Task</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody id="taskTable"></tbody>
+    </table>
+  </div>
+
+</main>
+
+<script>
+async function checkStatus() {
+  try {
+    const response = await fetch('/api/status');
+    const data = await response.json();
+
+    document.getElementById('systemStatus').textContent =
+      'Application: ' + data.status +
+      ' | Database: ' + data.database +
+      ' | MySQL: ' + data.mysql_version;
+  } catch (error) {
+    document.getElementById('systemStatus').textContent =
+      'Backend unavailable';
+  }
+}
+
+async function loadTasks() {
+  const response = await fetch('/api/tasks');
+  const tasks = await response.json();
+
+  const table = document.getElementById('taskTable');
+  table.innerHTML = '';
+
+  document.getElementById('totalTasks').textContent = tasks.length;
+
+  document.getElementById('openTasks').textContent =
+    tasks.filter(task => task.status !== 'done').length;
+
+  document.getElementById('doneTasks').textContent =
+    tasks.filter(task => task.status === 'done').length;
+
+  tasks.forEach(task => {
+    const row = document.createElement('tr');
+
+    row.innerHTML =
+      '<td>' + task.id + '</td>' +
+      '<td><strong>' + escapeHtml(task.title) + '</strong><br>' +
+      escapeHtml(task.description || '') + '</td>' +
+      '<td>' + task.priority + '</td>' +
+      '<td>' + task.status + '</td>' +
+      '<td class="actions">' +
+      '<button class="done" onclick="completeTask(' + task.id + ')">Done</button>' +
+      '<button class="delete" onclick="deleteTask(' + task.id + ')">Delete</button>' +
+      '</td>';
+
+    table.appendChild(row);
+  });
+}
+
+document.getElementById('taskForm').addEventListener('submit', async event => {
+  event.preventDefault();
+
+  const payload = {
+    title: document.getElementById('title').value,
+    description: document.getElementById('description').value,
+    priority: document.getElementById('priority').value
+  };
+
+  const response = await fetch('/api/tasks', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (response.ok) {
+    document.getElementById('taskForm').reset();
+    await loadTasks();
+  } else {
+    alert('Unable to create task');
+  }
+});
+
+async function completeTask(id) {
+  const response = await fetch('/api/tasks/' + id, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      status: 'done'
+    })
+  });
+
+  if (response.ok) {
+    await loadTasks();
+  }
+}
+
+async function deleteTask(id) {
+  const response = await fetch('/api/tasks/' + id, {
+    method: 'DELETE'
+  });
+
+  if (response.ok) {
+    await loadTasks();
+  }
+}
+
+function escapeHtml(value) {
+  const div = document.createElement('div');
+  div.textContent = value;
+  return div.innerHTML;
+}
+
+checkStatus();
+loadTasks();
+</script>
+
+</body>
+</html>
+HTML
+
+cat > /etc/nginx/nginx.conf <<'NGINX'
+user nginx;
+worker_processes auto;
+
+events {
+  worker_connections 1024;
+}
+
+http {
+  include /etc/nginx/mime.types;
+  default_type application/octet-stream;
+  sendfile on;
+
+  server {
+    listen 80 default_server;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location /api/ {
+      proxy_pass http://${app_alb_dns_name};
+      proxy_http_version 1.1;
+
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+      try_files $uri $uri/ /index.html;
+    }
+  }
+}
+NGINX
+
+systemctl enable nginx
+systemctl restart nginx
