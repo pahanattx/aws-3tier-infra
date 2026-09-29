@@ -12,9 +12,11 @@ TeamOps provides role-based task and incident management for a technical operati
 
 ---
 
-## Final Deployed Architecture
+## Final Tested Deployment Architecture
 
-TeamOps is deployed using a secure three-tier AWS architecture with the Web, Application, and Database tiers isolated inside a custom VPC.
+![TeamOps Final Tested AWS 3-Tier Architecture](docs/architecture/teamops-final-tested-architecture.png)
+
+The final tested TeamOps deployment used a secure three-tier AWS architecture with the Web, Application, and Database tiers isolated inside a custom VPC.
 
 ```text
 Internet / User
@@ -582,7 +584,7 @@ Application Tier
 
 ## API Gateway
 
-Amazon API Gateway HTTP API provides the working public HTTPS entry point for TeamOps.
+Amazon API Gateway HTTP API provided the public HTTPS entry point for the final tested TeamOps deployment.
 
 The API Gateway configuration uses a VPC Link to reach the private Web Application Load Balancer.
 
@@ -599,7 +601,7 @@ VPC Link
 Private Web ALB
 ```
 
-This allows the application to be accessed publicly without changing the Web ALB to an internet-facing load balancer.
+This allowed the application to be accessed publicly without changing the Web ALB to an internet-facing load balancer.
 
 The API Gateway infrastructure is managed through Terraform and Terragrunt.
 
@@ -704,6 +706,36 @@ TeamOps login was successfully tested through the HTTPS endpoint using a Team Le
 
 ---
 
+---
+
+## Deployment Evidence
+
+The following screenshots were captured from the final tested TeamOps deployment before the AWS resources were scaled down to control cloud cost.
+
+### Rolling Instance Refresh
+
+Both Web and Application Auto Scaling Groups completed their rolling instance refresh successfully.
+
+![Successful Auto Scaling Group Instance Refresh](docs/evidence/22-teamops-v4-instance-refresh-success.png)
+
+### Load Balancer Target Health
+
+Both Web and Application target groups were verified with two healthy targets.
+
+![Web and Application Target Health](docs/evidence/23-teamops-v4-target-health.png)
+
+### End-to-End Three-Tier Health
+
+Health verification confirmed the Web tier, Application tier, and Amazon RDS database path were operating successfully with the `teamops-flow-v4` application version.
+
+![TeamOps Full Three-Tier Health](docs/evidence/25-teamops-v4-full-3tier-health.png)
+
+### Public HTTPS Application Access
+
+TeamOps authentication and Team Lead access were successfully tested through the public HTTPS endpoint.
+
+![TeamOps Team Lead Login Success](docs/evidence/26-teamops-team-lead-login-success.png)
+
 ## AWS Systems Manager
 
 EC2 administration uses AWS Systems Manager Session Manager instead of SSH.
@@ -784,7 +816,7 @@ A VPC Origin resource that had been created during the failed deployment was lat
 
 The repository therefore retains the CloudFront design without claiming that the distribution is currently deployed.
 
-The working public entry point is Amazon API Gateway HTTP API with a VPC Link.
+The final tested public entry point used Amazon API Gateway HTTP API with a VPC Link.
 
 ---
 
